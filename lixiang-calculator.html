@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理想汽车金融试算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* 理想官方品牌色 */
+        :root {
+            --deep-green: #002D28;
+            --ui-green: #057568;
+            --sand-gold: #CEA472;
+            --black: #000000;
+            --black-80: #333333;
+            --black-60: #666666;
+            --black-20: #CCCCCC;
+        }
+
+        .header {
+            background: var(--deep-green);
+            color: white;
+            padding: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 32px auto;
+            padding: 0 32px 32px;
+        }
+
+        .calculator-wrapper {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,45,40,0.08);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            min-height: 750px;
+        }
+
+        .left-section {
+            padding: 40px;
+            border-right: 1px solid var(--black-20);
+        }
+
+        .right-section {
+            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-block {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--deep-green);
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 4px solid var(--sand-gold);
+        }
+
+        /* 车系选择 */
+        .car-series-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .car-series-item {
+            background: #fafafa;
+            border: 2px solid var(--black-20);
+            border-radius: 8px;
+            padding: 20px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .car-series-item:hover {
+            background: #f0f0f0;
+            border-color: var(--ui-green);
+            transform: translateY(-2px);
+        }
+
+        .car-series-item.active {
+            background: var(--deep-green);
+            color: white;
+            border-color: var(--deep-green);
+            box-shadow: 0 4px 12px rgba(0,45,40,0.2);
+        }
+
+        .car-series-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* 配置版本选择 */
+        .config-selector {
+            margin-top: 12px;
+        }
+
+        .config-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--black-60);
+            margin-bottom: 10px;
+        }
+
+        .config-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .config-item {
+            flex: 1;
+            min-width: 140px;
+            background: white;
+            border: 2px solid var(--black-20);
+            border-radius: 8px;
+            padding: 14px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-item:hover {
+            border-color: var(--ui-green);
+            background: #f8f8f8;
+        }
+
+        .config-item.active {
+            background: var(--ui-green);
+            color: white;
+            border-color: var(--ui-green);
+            box-shadow: 0 2px 8px rgba(5,117,104,0.2);
+        }
+
+        .config-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .config-price {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* 输入行 */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--black-80);
+            margin-bottom: 8px;
+        }
+
+        .input-label-helper {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--black-60);
+            margin-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid var(--black-20);
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fafafa;
+            transition: all 0.2s;
+            color: var(--black-80);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--ui-green);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(5,117,104,0.1);
+        }
+
+        .input-field:disabled,
+        .input-field[readonly] {
+            background: #f5f5f5;
+            color: var(--black-60);
+            cursor: not-allowed;
+        }
+
+        .input-field.editable {
+            background: white;
+            border-color: var(--sand-gold);
+            color: var(--black);
+        }
+
+        .input-field.editable:focus {
+            border-color: var(--ui-green);
+            box-shadow: 0 0 0 3px rgba(5,117,104,0.1);
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--black-60);
+            font-size: 14px;
+        }
+
+        .discount-helper {
+            font-size: 12px;
+            color: var(--sand-gold);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .discount-helper::before {
+            content: '💡';
+        }
+
+        .downpayment-warning {
+            font-size: 12px;
+            color: #ff4444;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .downpayment-warning::before {
+            content: '⚠️';
+        }
+
+        .downpayment-hint {
+            font-size: 12px;
+            color: #ff6b6b;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .downpayment-hint::before {
+            content: '💡';
+        }
+
+        /* 金融产品标签 */
+        .product-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .product-tab {
+            padding: 11px 20px;
+            background: #fafafa;
+            border: 1.5px solid var(--black-20);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--black-80);
+            white-space: nowrap;
+        }
+
+        .product-tab:hover:not(.disabled) {
+            background: #f0f0f0;
+            border-color: var(--ui-green);
+        }
+
+        .product-tab.active {
+            background: var(--deep-green);
+            color: white;
+            border-color: var(--deep-green);
+        }
+
+        .product-tab.disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .badge-hot {
+            display: inline-block;
+            background: #ff4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+
+        .badge-new {
+            display: inline-block;
+            background: #00cc66;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+
+        .badge-limited {
+            display: inline-block;
+            background: var(--sand-gold);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+
+        /* 期限选择 */
+        .period-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .period-item {
+            padding: 14px 10px;
+            background: #fafafa;
+            border: 1.5px solid var(--black-20);
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .period-item:hover {
+            background: #f0f0f0;
+            border-color: var(--ui-green);
+        }
+
+        .period-item.active {
+            background: var(--deep-green);
+            color: white;
+            border-color: var(--deep-green);
+        }
+
+        .period-label {
+            font-size: 12px;
+            opacity: 0.75;
+            margin-top: 2px;
+        }
+
+        /* 结果展示 */
+        .result-main {
+            background: linear-gradient(135deg, var(--deep-green) 0%, #004d45 100%);
+            border-radius: 12px;
+            padding: 36px;
+            text-align: center;
+            color: white;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(0,45,40,0.15);
+        }
+
+        .result-label {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            font-size: 58px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .result-unit {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .result-sub {
+            font-size: 13px;
+            opacity: 0.75;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* 详细信息 */
+        .details-card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-size: 14px;
+            color: var(--black-60);
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--black-80);
+        }
+
+        .detail-row.highlight {
+            padding-top: 18px;
+            margin-top: 8px;
+            border-top: 2px solid #e8e8e8;
+        }
+
+        .detail-row.highlight .detail-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--deep-green);
+        }
+
+        .detail-row.highlight .detail-value {
+            font-size: 20px;
+            color: var(--sand-gold);
+        }
+
+        /* 提示框 */
+        .info-notice {
+            background: linear-gradient(135deg, #fffbf5 0%, #fff5e6 100%);
+            border-left: 4px solid var(--sand-gold);
+            padding: 16px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--black-60);
+            line-height: 1.6;
+            margin-top: auto;
+        }
+
+        .info-notice strong {
+            color: var(--black-80);
+        }
+
+        /* 计算按钮 */
+        .calc-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--ui-green) 0%, #046b5f 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(5,117,104,0.2);
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(5,117,104,0.3);
+        }
+
+        .calc-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 7免3特殊显示 */
+        .special-7free3 {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffedd5 100%);
+            border: 2px solid var(--sand-gold);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .special-7free3-title {
+            font-weight: 600;
+            color: var(--deep-green);
+            margin-bottom: 8px;
+        }
+
+        .special-7free3-detail {
+            color: var(--black-60);
+            line-height: 1.6;
+        }
+
+        /* 免责声明 */
+        .disclaimer {
+            max-width: 1400px;
+            margin: 24px auto 0;
+            padding: 24px 32px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .disclaimer-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--deep-green);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .disclaimer-title::before {
+            content: '⚠️';
+            font-size: 18px;
+        }
+
+        .disclaimer-content {
+            font-size: 13px;
+            color: var(--black-60);
+            line-height: 1.8;
+        }
+
+        .disclaimer-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .disclaimer-content li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .disclaimer-content li::before {
+            content: '•';
+            position: absolute;
+            left: 8px;
+            color: var(--sand-gold);
+            font-weight: bold;
+        }
+
+        .disclaimer-highlight {
+            color: var(--deep-green);
+            font-weight: 600;
+        }
+
+        .disclaimer-footer {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e8e8e8;
+            text-align: center;
+            font-size: 12px;
+            color: var(--black-60);
+        }
+
+        .disclaimer-footer strong {
+            color: var(--sand-gold);
+        }
+
+        @media (max-width: 1200px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .left-section {
+                border-right: none;
+                border-bottom: 1px solid var(--black-20);
+            }
+
+            .car-series-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .car-series-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .result-value {
+                font-size: 46px;
+            }
+
+            .config-options {
+                flex-direction: column;
+            }
+
+            .config-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <div class="logo">理想汽车</div>
+                <div class="header-subtitle">金融试算器 · 2026年2月政策版</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="calculator-wrapper">
+            <div class="calculator-grid">
+                <!-- 左侧：参数选择 -->
+                <div class="left-section">
+                    <!-- 车系选择 -->
+                    <div class="section-block">
+                        <div class="section-title">选择车系</div>
+                        <div class="car-series-grid">
+                            <div class="car-series-item active" data-series="i8">
+                                <div class="car-series-name">理想 i8</div>
+                            </div>
+                            <div class="car-series-item" data-series="MEGA">
+                                <div class="car-series-name">MEGA</div>
+                            </div>
+                            <div class="car-series-item" data-series="i6">
+                                <div class="car-series-name">理想 i6</div>
+                            </div>
+                            <div class="car-series-item" data-series="L9">
+                                <div class="car-series-name">理想 L9</div>
+                            </div>
+                            <div class="car-series-item" data-series="L8">
+                                <div class="car-series-name">理想 L8</div>
+                            </div>
+                            <div class="car-series-item" data-series="L7">
+                                <div class="car-series-name">理想 L7</div>
+                            </div>
+                            <div class="car-series-item" data-series="L6">
+                                <div class="car-series-name">理想 L6</div>
+                            </div>
+                        </div>
+
+                        <!-- 配置版本选择 -->
+                        <div class="config-selector">
+                            <div class="config-label">选择配置版本</div>
+                            <div class="config-options" id="configOptions">
+                                <!-- 动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 购车金额 -->
+                    <div class="section-block">
+                        <div class="section-title">购车金额</div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="input-label">车辆指导价<span class="input-label-helper">(官方)</span></label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="carGuidancePrice" class="input-field" value="339,800" readonly>
+                                    <span class="input-unit">元</span>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">实际开票价<span class="input-label-helper">(可编辑)</span></label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="carActualPrice" class="input-field editable" value="339800" step="100">
+                                    <span class="input-unit">元</span>
+                                </div>
+                                <div class="discount-helper">含现金优惠、置换补贴等政策后的价格</div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="input-label">首付金额<span class="input-label-helper">(可编辑)</span></label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="downPaymentAmount" class="input-field editable" value="101940" step="1000">
+                                    <span class="input-unit">元</span>
+                                </div>
+                                <div class="downpayment-hint" id="downpaymentHint" style="display: none;"></div>
+                                <div class="downpayment-warning" id="downpaymentWarning" style="display: none;"></div>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">首付比例<span class="input-label-helper">(可编辑)</span></label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="downPercent" class="input-field editable" value="30" min="0" max="100" step="0.1">
+                                    <span class="input-unit">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group input-group-full">
+                                <label class="input-label">贷款金额<span class="input-label-helper">(可编辑)</span></label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="loanAmountInput" class="input-field editable" value="237860" step="1000">
+                                    <span class="input-unit">元</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 金融产品 -->
+                    <div class="section-block">
+                        <div class="section-title">金融产品方案</div>
+                        <div class="product-tabs">
+                            <div class="product-tab active" data-product="0interest" data-rate="0" data-applies="i8,MEGA" data-periods="12,24,36" data-min-down-i8="99800" data-min-down-MEGA="159800">
+                                3年0息<span class="badge-hot">HOT</span>
+                            </div>
+                            <div class="product-tab" data-product="0.99low" data-rate="0.99" data-applies="i8,MEGA" data-periods="12,24,36,48,60" data-min-down="0">
+                                0.99%超低息<span class="badge-hot">HOT</span>
+                            </div>
+                            <div class="product-tab" data-product="1.99promo" data-rate="1.99" data-applies="i6,L6,L7,L8,L9" data-periods="12,24,36,48,60" data-min-down="0">
+                                限时1.99%<span class="badge-new">NEW</span>
+                            </div>
+                            <div class="product-tab" data-product="7year1.69" data-rate="1.69" data-applies="i8,MEGA" data-periods="72,84" data-min-down="15">
+                                7年1.69%<span class="badge-limited">限时</span>
+                            </div>
+                            <div class="product-tab" data-product="7year2.5" data-rate="2.5" data-applies="i6,L6,L7,L8,L9" data-periods="72,84" data-min-down="15">
+                                7年2.5%
+                            </div>
+                            <div class="product-tab" data-product="7free3" data-rate="special" data-applies="i8,MEGA" data-periods="84" data-min-down-i8="99800" data-min-down-MEGA="159800">
+                                7免3方案<span class="badge-hot">HOT</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 贷款期限 -->
+                    <div class="section-block">
+                        <div class="section-title">贷款期限</div>
+                        <div class="period-grid" id="periodGrid">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+
+                    <button class="calc-btn" onclick="calculate()">💰 立即计算</button>
+                </div>
+
+                <!-- 右侧：结果展示 -->
+                <div class="right-section">
+                    <!-- 月供结果 -->
+                    <div class="result-main">
+                        <div class="result-label">每月还款</div>
+                        <div>
+                            <span class="result-value" id="monthlyPayment">6,607</span>
+                        </div>
+                        <div class="result-unit">元/月</div>
+                        <div class="result-sub" id="dailyPayment">日供约 220 元</div>
+                    </div>
+
+                    <!-- 7免3特殊提示 -->
+                    <div class="special-7free3" id="special7free3" style="display: none;">
+                        <div class="special-7free3-title">🎉 7免3方案说明</div>
+                        <div class="special-7free3-detail">
+                            <strong>前3年：</strong><span id="phase1Payment">0</span> 元/月 (0息)<br>
+                            <strong>后4年：</strong><span id="phase2Payment">0</span> 元/月 (2.5%)<br>
+                            <strong>特别提示：</strong>提前结清无违约金，资金灵活度拉满！
+                        </div>
+                    </div>
+
+                    <!-- 详细信息 -->
+                    <div class="details-card">
+                        <div class="detail-row">
+                            <span class="detail-label">贷款本金</span>
+                            <span class="detail-value" id="loanPrincipal">237,860 元</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">贷款期限</span>
+                            <span class="detail-value" id="loanPeriod">36期 (3年)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">金融产品</span>
+                            <span class="detail-value" id="loanRate">限时3年0息</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">支付利息</span>
+                            <span class="detail-value" id="totalInterest">0 元</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">还款总额</span>
+                            <span class="detail-value" id="totalPayment">237,860 元</span>
+                        </div>
+                        <div class="detail-row highlight">
+                            <span class="detail-label">购车总成本</span>
+                            <span class="detail-value" id="totalCost">339,800 元</span>
+                        </div>
+                    </div>
+
+                    <!-- 温馨提示 -->
+                    <div class="info-notice">
+                        <strong>💡 温馨提示：</strong>本计算器采用简单利息模式（手续费模式），计算结果仅供参考。7年期产品3年内结清违约金=5%×剩余本金，满3年结清无违约金。7免3方案提前结清无违约金。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 免责声明 -->
+        <div class="disclaimer">
+            <div class="disclaimer-title">重要声明与免责条款</div>
+            <div class="disclaimer-content">
+                <ul>
+                    <li><span class="disclaimer-highlight">本试算器仅供参考使用：</span>本金融试算器提供的计算结果仅供您参考和初步了解，不构成任何形式的要约、承诺或保证。实际金融方案以理想汽车官方最终审批结果为准。</li>
+
+                    <li><span class="disclaimer-highlight">政策时效性说明：</span>本试算器基于2026年2月金融政策设计，金融产品、利率、期限、首付比例等政策可能随时调整或终止。请以您购车时理想汽车官方公布的最新政策为准。</li>
+
+                    <li><span class="disclaimer-highlight">个人资质影响：</span>最终贷款审批结果受您的个人征信、收入证明、工作状况、负债比率等多种因素影响。不同客户的实际利率、首付比例、贷款额度可能存在差异。</li>
+
+                    <li><span class="disclaimer-highlight">车辆开票价说明：</span>"实际开票价"需根据具体的现金优惠、置换补贴、限时促销、地区政策等因素调整。具体优惠政策请咨询您所在地区的理想汽车门店或产品专家。</li>
+
+                    <li><span class="disclaimer-highlight">费用不含其他支出：</span>本试算器计算结果仅包含车辆价格和贷款利息，不包含购置税、保险费、上牌费、延保费用、选装配置等其他购车相关费用。</li>
+
+                    <li><span class="disclaimer-highlight">提前还款政策：</span>7年期常规产品3年内提前结清需支付违约金（5%×剩余本金），满3年后提前结清无违约金；7免3方案全程提前结清无违约金。具体政策以金融机构最终合同为准。</li>
+
+                    <li><span class="disclaimer-highlight">地区政策差异：</span>不同地区的金融政策、合作金融机构、审批标准可能存在差异。部分金融产品可能仅在特定区域提供。</li>
+
+                    <li><span class="disclaimer-highlight">数据准确性：</span>我们力求确保试算器的计算逻辑准确无误，但不对因系统误差、网络延迟、数据输入错误等原因导致的计算偏差承担责任。</li>
+                </ul>
+            </div>
+            <div class="disclaimer-footer">
+                <strong>详情请咨询您的理想汽车产品专家</strong> |
+                最终解释权归理想汽车所有 |
+                以理想汽车官网 <strong>www.lixiang.com</strong> 及官方门店公布信息为准
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 完整车型配置数据
+        const carConfigs = {
+            'MEGA': [
+                { name: 'MEGA Home', price: 559800 },
+                { name: 'MEGA Ultra', price: 529800 }
+            ],
+            'i8': [
+                { name: '理想 i8', price: 339800 }
+            ],
+            'i6': [
+                { name: '理想 i6', price: 244800 }
+            ],
+            'L9': [
+                { name: 'L9 Ultra', price: 394800 },
+                { name: 'L9 Pro', price: 364800 }
+            ],
+            'L8': [
+                { name: 'L8 Ultra', price: 339800 },
+                { name: 'L8 Max', price: 309800 },
+                { name: 'L8 Pro', price: 281800 }
+            ],
+            'L7': [
+                { name: 'L7 Ultra', price: 319800 },
+                { name: 'L7 Max', price: 289800 },
+                { name: 'L7 Pro', price: 261800 }
+            ],
+            'L6': [
+                { name: 'L6 Max', price: 246800 },
+                { name: 'L6 Pro', price: 216800 }
+            ]
+        };
+
+        // 最低首付要求
+        const minDownPayments = {
+            'i8': { '0interest': 99800, '7free3': 99800 },
+            'MEGA': { '0interest': 159800, '7free3': 159800 }
+        };
+
+        let currentSeries = 'i8';
+        let currentConfig = null;
+        let currentProduct = '0interest';
+        let currentRate = 0;
+        let currentPeriod = 36;
+        let currentProductData = null;
+        let isUpdating = false; // 防止循环更新
+
+        // 格式化数字
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString('zh-CN');
+        }
+
+        // 获取当前产品的最低首付金额
+        function getMinDownPaymentAmount() {
+            // i8和MEGA的特殊产品有固定最低首付金额
+            if ((currentSeries === 'i8' || currentSeries === 'MEGA') &&
+                (currentProduct === '0interest' || currentProduct === '7free3')) {
+                return minDownPayments[currentSeries]?.[currentProduct] || 0;
+            }
+            return 0;
+        }
+
+        // 获取当前产品的最低首付比例
+        function getMinDownPaymentPercent() {
+            const activeProduct = document.querySelector('.product-tab.active');
+            if (!activeProduct) return 0;
+
+            const minDownStr = activeProduct.dataset.minDown;
+            if (minDownStr && minDownStr !== 'undefined') {
+                return parseFloat(minDownStr);
+            }
+
+            // i8和MEGA的特殊产品，如果有固定金额要求，计算对应的最低比例
+            const minDownAmount = getMinDownPaymentAmount();
+            if (minDownAmount > 0) {
+                const actualPrice = parseFloat(document.getElementById('carActualPrice').value) || 0;
+                if (actualPrice > 0) {
+                    return (minDownAmount / actualPrice * 100);
+                }
+            }
+
+            return 0;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 车系选择
+            document.querySelectorAll('.car-series-item').forEach(el => {
+                el.addEventListener('click', function() {
+                    document.querySelectorAll('.car-series-item').forEach(e => e.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSeries = this.dataset.series;
+                    loadConfigs();
+                    filterProducts();
+                    renderPeriods();
+                    // 车系切换后会在loadConfigs中自动调用updateCarPrice()
+                });
+            });
+
+            // 金融产品选择
+            document.querySelectorAll('.product-tab').forEach(el => {
+                el.addEventListener('click', function() {
+                    if (this.classList.contains('disabled')) return;
+                    document.querySelectorAll('.product-tab').forEach(e => e.classList.remove('active'));
+                    this.classList.add('active');
+                    currentProduct = this.dataset.product;
+                    currentRate = this.dataset.rate === 'special' ? 'special' : parseFloat(this.dataset.rate);
+                    currentProductData = {
+                        applies: this.dataset.applies,
+                        periods: this.dataset.periods,
+                        minDown: this.dataset.minDown,
+                        minDownI8: this.dataset.minDownI8,
+                        minDownMEGA: this.dataset.minDownMega
+                    };
+
+                    // 切换产品后，重新应用最低首付要求
+                    updateCarPrice();
+                    checkMinDownPayment();
+                    renderPeriods();
+                    calculate();
+                });
+            });
+
+            // 实际开票价变化 - 保持首付比例不变
+            document.getElementById('carActualPrice').addEventListener('input', function() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                let actualPrice = parseFloat(this.value) || 0;
+                if (actualPrice < 0) actualPrice = 0;
+                this.value = actualPrice;
+
+                const percent = parseFloat(document.getElementById('downPercent').value) || 0;
+                const downAmount = actualPrice * percent / 100;
+                const loanAmount = actualPrice - downAmount;
+
+                document.getElementById('downPaymentAmount').value = Math.round(downAmount);
+                document.getElementById('loanAmountInput').value = Math.round(loanAmount);
+
+                isUpdating = false;
+                checkMinDownPayment();
+                calculate();
+            });
+
+            // 首付金额变化 - 自动计算比例和贷款
+            document.getElementById('downPaymentAmount').addEventListener('input', function() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                let downAmount = parseFloat(this.value) || 0;
+                if (downAmount < 0) downAmount = 0;
+
+                // 检查并强制最低首付金额
+                const minDownAmount = getMinDownPaymentAmount();
+                if (minDownAmount > 0 && downAmount < minDownAmount && downAmount > 0) {
+                    downAmount = minDownAmount;
+                }
+
+                this.value = downAmount;
+
+                const actualPrice = parseFloat(document.getElementById('carActualPrice').value) || 0;
+                if (actualPrice > 0) {
+                    const percent = (downAmount / actualPrice * 100).toFixed(1);
+                    document.getElementById('downPercent').value = percent;
+                }
+
+                const loanAmount = actualPrice - downAmount;
+                document.getElementById('loanAmountInput').value = Math.round(loanAmount);
+
+                isUpdating = false;
+                checkMinDownPayment();
+                calculate();
+            });
+
+            // 首付比例变化 - 自动计算金额和贷款
+            document.getElementById('downPercent').addEventListener('input', function() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                let percent = parseFloat(this.value) || 0;
+                if (percent < 0) percent = 0;
+                if (percent > 100) percent = 100;
+
+                // 检查并强制最低首付比例
+                const minDownPercent = getMinDownPaymentPercent();
+                if (minDownPercent > 0 && percent < minDownPercent && percent > 0) {
+                    percent = minDownPercent;
+                }
+
+                this.value = percent;
+
+                const actualPrice = parseFloat(document.getElementById('carActualPrice').value) || 0;
+                const downAmount = actualPrice * percent / 100;
+                const loanAmount = actualPrice - downAmount;
+
+                document.getElementById('downPaymentAmount').value = Math.round(downAmount);
+                document.getElementById('loanAmountInput').value = Math.round(loanAmount);
+
+                isUpdating = false;
+                checkMinDownPayment();
+                calculate();
+            });
+
+            // 贷款金额变化 - 自动计算首付金额和比例
+            document.getElementById('loanAmountInput').addEventListener('input', function() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                let loanAmount = parseFloat(this.value) || 0;
+                if (loanAmount < 0) loanAmount = 0;
+
+                const actualPrice = parseFloat(document.getElementById('carActualPrice').value) || 0;
+                let downAmount = actualPrice - loanAmount;
+
+                // 检查并强制最低首付金额
+                const minDownAmount = getMinDownPaymentAmount();
+                if (minDownAmount > 0 && downAmount < minDownAmount) {
+                    downAmount = minDownAmount;
+                    loanAmount = actualPrice - downAmount;
+                }
+
+                // 检查并强制最低首付比例
+                if (actualPrice > 0) {
+                    const currentPercent = (downAmount / actualPrice * 100);
+                    const minDownPercent = getMinDownPaymentPercent();
+                    if (minDownPercent > 0 && currentPercent < minDownPercent) {
+                        downAmount = actualPrice * minDownPercent / 100;
+                        loanAmount = actualPrice - downAmount;
+                    }
+                }
+
+                this.value = Math.round(loanAmount);
+
+                if (downAmount >= 0) {
+                    document.getElementById('downPaymentAmount').value = Math.round(downAmount);
+                    if (actualPrice > 0) {
+                        const percent = (downAmount / actualPrice * 100).toFixed(1);
+                        document.getElementById('downPercent').value = percent;
+                    }
+                }
+
+                isUpdating = false;
+                checkMinDownPayment();
+                calculate();
+            });
+
+            // 初始化加载
+            loadConfigs();
+            filterProducts();
+            renderPeriods();
+            updateDownPaymentHint();
+            calculate();
+        });
+
+        // 加载配置选项
+        function loadConfigs() {
+            const configContainer = document.getElementById('configOptions');
+            configContainer.innerHTML = '';
+
+            const configs = carConfigs[currentSeries];
+            if (!configs) return;
+
+            configs.forEach((config, index) => {
+                const configEl = document.createElement('div');
+                configEl.className = 'config-item' + (index === 0 ? ' active' : '');
+                configEl.dataset.configName = config.name;
+                configEl.dataset.configPrice = config.price;
+                configEl.innerHTML = `
+                    <div class="config-name">${config.name}</div>
+                    <div class="config-price">${(config.price / 10000).toFixed(2)}万</div>
+                `;
+
+                configEl.addEventListener('click', function() {
+                    document.querySelectorAll('.config-item').forEach(e => e.classList.remove('active'));
+                    this.classList.add('active');
+                    currentConfig = {
+                        name: this.dataset.configName,
+                        price: parseFloat(this.dataset.configPrice)
+                    };
+                    updateCarPrice();
+                    checkMinDownPayment();
+                    calculate();
+                });
+
+                configContainer.appendChild(configEl);
+            });
+
+            if (configs.length > 0) {
+                currentConfig = {
+                    name: configs[0].name,
+                    price: configs[0].price
+                };
+                updateCarPrice();
+            }
+        }
+
+        // 更新车价
+        function updateCarPrice() {
+            if (!currentConfig) return;
+            isUpdating = true;
+            const guidancePrice = currentConfig.price;
+            document.getElementById('carGuidancePrice').value = formatNumber(guidancePrice);
+            document.getElementById('carActualPrice').value = guidancePrice;
+
+            // 计算最低首付比例和金额
+            const minDownAmount = getMinDownPaymentAmount();
+            const minDownPercent = getMinDownPaymentPercent();
+
+            let downAmount, percent;
+
+            // 0.99%和1.99%产品默认0元首付
+            if (currentProduct === '0.99low' || currentProduct === '1.99promo') {
+                downAmount = 0;
+                percent = 0;
+            } else if (minDownAmount > 0) {
+                // 如果有固定最低首付金额要求，使用该金额
+                downAmount = minDownAmount;
+                percent = (downAmount / guidancePrice * 100);
+            } else if (minDownPercent >= 0 && hasMinDownRequirement()) {
+                // 如果有最低首付比例要求（包括0%），使用该比例
+                percent = minDownPercent;
+                downAmount = guidancePrice * percent / 100;
+            } else {
+                // 没有最低要求，使用默认30%
+                percent = 30;
+                downAmount = guidancePrice * percent / 100;
+            }
+
+            const loanAmount = guidancePrice - downAmount;
+
+            document.getElementById('downPercent').value = percent.toFixed(1);
+            document.getElementById('downPaymentAmount').value = Math.round(downAmount);
+            document.getElementById('loanAmountInput').value = Math.round(loanAmount);
+
+            // 更新首付规则提示
+            updateDownPaymentHint();
+
+            isUpdating = false;
+        }
+
+        // 检查当前产品是否有最低首付要求
+        function hasMinDownRequirement() {
+            const activeProduct = document.querySelector('.product-tab.active');
+            if (!activeProduct) return false;
+
+            const minDownStr = activeProduct.dataset.minDown;
+            const minDownI8 = activeProduct.dataset.minDownI8;
+            const minDownMEGA = activeProduct.dataset.minDownMega;
+
+            // 如果有任何最低首付设置（即使是0），返回true
+            return (minDownStr !== undefined && minDownStr !== '') ||
+                   (minDownI8 !== undefined) ||
+                   (minDownMEGA !== undefined);
+        }
+
+        // 更新首付规则提示
+        function updateDownPaymentHint() {
+            const hintEl = document.getElementById('downpaymentHint');
+            const minDownAmount = getMinDownPaymentAmount();
+            const minDownPercent = getMinDownPaymentPercent();
+
+            let hintText = '';
+
+            // 0.99%和1.99%产品提示0元起
+            if (currentProduct === '0.99low' || currentProduct === '1.99promo') {
+                hintText = '0元起首付';
+            } else if (minDownAmount > 0) {
+                // 有固定最低首付金额
+                hintText = `最低首付${formatNumber(minDownAmount)}元`;
+            } else if (minDownPercent > 0) {
+                // 有最低首付比例
+                hintText = `最低首付比例${minDownPercent}%`;
+            }
+
+            if (hintText) {
+                hintEl.style.display = 'flex';
+                hintEl.textContent = hintText;
+            } else {
+                hintEl.style.display = 'none';
+            }
+        }
+
+        // 检查最低首付
+        function checkMinDownPayment() {
+            const warningEl = document.getElementById('downpaymentWarning');
+            const downAmount = parseFloat(document.getElementById('downPaymentAmount').value) || 0;
+            const actualPrice = parseFloat(document.getElementById('carActualPrice').value) || 0;
+
+            const minDownAmount = getMinDownPaymentAmount();
+            const minDownPercent = getMinDownPaymentPercent();
+
+            let warnings = [];
+
+            // 检查最低首付金额
+            if (minDownAmount > 0 && downAmount < minDownAmount) {
+                warnings.push(`最低首付金额${formatNumber(minDownAmount)}元`);
+            }
+
+            // 检查最低首付比例
+            if (minDownPercent > 0 && actualPrice > 0) {
+                const currentPercent = (downAmount / actualPrice * 100);
+                if (currentPercent < minDownPercent) {
+                    warnings.push(`最低首付比例${minDownPercent}%`);
+                }
+            }
+
+            if (warnings.length > 0) {
+                warningEl.style.display = 'flex';
+                warningEl.textContent = warnings.join('，');
+            } else {
+                warningEl.style.display = 'none';
+            }
+        }
+
+        // 过滤适用产品
+        function filterProducts() {
+            document.querySelectorAll('.product-tab').forEach(el => {
+                const applies = el.dataset.applies.split(',');
+                if (applies.includes(currentSeries)) {
+                    el.classList.remove('disabled');
+                } else {
+                    el.classList.add('disabled');
+                }
+            });
+
+            const activeProduct = document.querySelector('.product-tab.active');
+            if (activeProduct && activeProduct.classList.contains('disabled')) {
+                const firstAvailable = document.querySelector('.product-tab:not(.disabled)');
+                if (firstAvailable) {
+                    activeProduct.classList.remove('active');
+                    firstAvailable.classList.add('active');
+                    currentProduct = firstAvailable.dataset.product;
+                    currentRate = firstAvailable.dataset.rate === 'special' ? 'special' : parseFloat(firstAvailable.dataset.rate);
+                    currentProductData = {
+                        applies: firstAvailable.dataset.applies,
+                        periods: firstAvailable.dataset.periods,
+                        minDown: firstAvailable.dataset.minDown,
+                        minDownI8: firstAvailable.dataset.minDownI8,
+                        minDownMEGA: firstAvailable.dataset.minDownMega
+                    };
+                }
+            }
+        }
+
+        // 渲染期限选项（只显示可用的）
+        function renderPeriods() {
+            const periodGrid = document.getElementById('periodGrid');
+            periodGrid.innerHTML = '';
+
+            const activeProduct = document.querySelector('.product-tab.active');
+            if (!activeProduct) return;
+
+            const periodsStr = activeProduct.dataset.periods;
+            if (!periodsStr) return;
+
+            const periods = periodsStr.split(',');
+            const periodNames = {
+                '12': '1年', '24': '2年', '36': '3年',
+                '48': '4年', '60': '5年', '72': '6年', '84': '7年'
+            };
+
+            let firstPeriod = null;
+            periods.forEach(period => {
+                if (!firstPeriod) firstPeriod = period;
+
+                const periodEl = document.createElement('div');
+                periodEl.className = 'period-item' + (period === String(currentPeriod) ? ' active' : '');
+                periodEl.dataset.period = period;
+                periodEl.innerHTML = `
+                    <div>${period}期</div>
+                    <div class="period-label">${periodNames[period]}</div>
+                `;
+
+                periodEl.addEventListener('click', function() {
+                    document.querySelectorAll('.period-item').forEach(e => e.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPeriod = parseInt(this.dataset.period);
+                    calculate();
+                });
+
+                periodGrid.appendChild(periodEl);
+            });
+
+            // 如果当前期限不在可用列表中，切换到第一个可用期限
+            if (!periods.includes(String(currentPeriod))) {
+                currentPeriod = parseInt(firstPeriod);
+            }
+        }
+
+        // 主计算函数
+        function calculate() {
+            const actualPrice = parseFloat(document.getElementById('carActualPrice').value) || 0;
+            const downPayment = parseFloat(document.getElementById('downPaymentAmount').value) || 0;
+            const loanAmount = parseFloat(document.getElementById('loanAmountInput').value) || 0;
+
+            let monthlyPayment, totalInterest, phase1Monthly = 0, phase2Monthly = 0;
+
+            if (currentProduct === '7free3') {
+                const phase1Months = 36;
+                const phase2Months = 48;
+                const totalMonths = 84;
+
+                // 7免3算法（根据官方数据精确验证）：
+                // 1. 前3年月供 = 总贷款 ÷ 84（把整个7年的本金平均分摊）
+                // 2. 前3年总还款 = 前3年月供 × 36
+                // 3. 后4年本金 = 总贷款 - 前3年总还款
+                // 4. 后4年利息系数 = 2.5% × 4 × (84÷48) = 0.1752
+                // 5. 后4年月供 = 后4年本金 × (1 + 0.1752) ÷ 48
+
+                // 前3年：每期还总贷款的1/84
+                phase1Monthly = loanAmount / totalMonths;
+                const phase1TotalPayment = phase1Monthly * phase1Months;
+
+                // 后4年剩余本金
+                const phase2Principal = loanAmount - phase1TotalPayment;
+
+                // 后4年：本金+利息（利息=本金×17.52%）
+                const interestFactor = 0.025 * 4 * (totalMonths / phase2Months); // = 0.1752
+                phase2Monthly = phase2Principal * (1 + interestFactor) / phase2Months;
+
+                const phase2TotalPayment = phase2Monthly * phase2Months;
+                totalInterest = phase2TotalPayment - phase2Principal;
+                monthlyPayment = phase1Monthly; // 显示前3年月供
+
+                document.getElementById('special7free3').style.display = 'block';
+                document.getElementById('phase1Payment').textContent = formatNumber(phase1Monthly);
+                document.getElementById('phase2Payment').textContent = formatNumber(phase2Monthly);
+            } else {
+                document.getElementById('special7free3').style.display = 'none';
+
+                const years = currentPeriod / 12;
+                totalInterest = loanAmount * (currentRate / 100) * years;
+                const totalPayment = loanAmount + totalInterest;
+                monthlyPayment = totalPayment / currentPeriod;
+            }
+
+            const totalPayment = loanAmount + totalInterest;
+            const totalCost = actualPrice + totalInterest;
+            const dailyPayment = monthlyPayment / 30;
+
+            // 更新显示
+            document.getElementById('monthlyPayment').textContent = formatNumber(monthlyPayment);
+            document.getElementById('dailyPayment').textContent = `日供约 ${formatNumber(dailyPayment)} 元`;
+            document.getElementById('loanPrincipal').textContent = formatNumber(loanAmount) + ' 元';
+            document.getElementById('loanPeriod').textContent = `${currentPeriod}期 (${currentPeriod/12}年)`;
+
+            // 更新金融产品显示
+            let productName = '';
+            if (currentProduct === '7free3') {
+                productName = '7免3方案';
+            } else if (currentProduct === '0interest') {
+                productName = '限时3年0息';
+            } else if (currentProduct === '0.99low') {
+                productName = '限时年费率0.99%';
+            } else if (currentProduct === '1.99promo') {
+                productName = '限时年费率1.99%';
+            } else if (currentProduct === '7year1.69') {
+                productName = '超长期产品 年费率1.69%';
+            } else if (currentProduct === '7year2.5') {
+                productName = '超长期产品 年费率2.5%';
+            }
+            document.getElementById('loanRate').textContent = productName;
+
+            document.getElementById('totalInterest').textContent = formatNumber(totalInterest) + ' 元';
+            document.getElementById('totalPayment').textContent = formatNumber(totalPayment) + ' 元';
+            document.getElementById('totalCost').textContent = formatNumber(totalCost) + ' 元';
+        }
+    </script>
+</body>
+</html>
